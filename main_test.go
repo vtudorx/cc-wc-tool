@@ -6,6 +6,7 @@ import (
 	"flag"
 	"os"
 	"slices"
+	"strings"
 	"testing"
 )
 
@@ -143,10 +144,20 @@ func TestReadLines(t *testing.T) {
 
 	scanner := bufio.NewScanner(tmp)
 
-	t.Run("ok read", func(t *testing.T) {
-		actualLines := readLines(scanner)
-		if len(expectedContent) != actualLines {
-			t.Fatalf("expected %#v got %#v", len(expectedContent), actualLines)
-		}
-	})
+	actualLines := readLines(scanner)
+	if len(expectedContent) != actualLines {
+		t.Fatalf("expected %d got %d", len(expectedContent), actualLines)
+	}
+}
+
+func TestReadNoWords(t *testing.T) {
+	input := "word1, two three\n four five; six"
+	expectedCount := 6
+	scanner := bufio.NewScanner(strings.NewReader(input))
+
+	actualCount := readWords(scanner)
+
+	if actualCount != expectedCount {
+		t.Errorf("expected %d, got %d", expectedCount, actualCount)
+	}
 }

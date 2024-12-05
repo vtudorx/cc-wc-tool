@@ -70,3 +70,17 @@ func readLines(s *bufio.Scanner) int {
 
 	return numberOfLines
 }
+
+func readWords(s *bufio.Scanner) int {
+	noOfWords := 0
+	s.Split(bufio.ScanWords)
+	for s.Scan() {
+		noOfWords++
+	}
+
+	if err := s.Err(); err != nil {
+		log.Fatalf("error encountered %s", err.Error())
+	}
+
+	return noOfWords
+}
