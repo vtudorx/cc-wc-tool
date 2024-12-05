@@ -158,6 +158,6 @@ func TestReadNoWords(t *testing.T) {
 	actualCount := readWords(scanner)
 
 	if actualCount != expectedCount {
-		t.Errorf("expected %d, got %d", expectedCount, actualCount)
+		t.Errorf("expected %d got %d", expectedCount, actualCount)
 	}
 }
