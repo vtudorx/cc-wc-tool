@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"flag"
 	"os"
+	"slices"
 	"testing"
 )
 
@@ -73,9 +75,14 @@ func TestReadTxtFile(t *testing.T) {
 		}
 	}(tmp.Name())
 
-	content := []byte("lorem ipsum")
+	expectedContent := []string{"lorem ipsum", "ipsum lorem"}
+	var byteSlice []byte
+	buffer := bytes.NewBuffer(byteSlice)
+	for _, str := range expectedContent {
+		buffer.WriteString(str + "\n")
+	}
 
-	_, err = tmp.Write(content)
+	_, err = tmp.Write(byteSlice)
 	if err != nil {
 		t.Fatalf("unable to write test data %#v", err)
 	}
@@ -85,9 +92,61 @@ func TestReadTxtFile(t *testing.T) {
 	}
 
 	t.Run("ok read", func(t *testing.T) {
-		results := readTxtFile(tmp.Name())
-		if !bytes.Equal(content, results) {
-			t.Fatalf("expected %#v got %#v", content, results)
+		scanner := readTxtFile(tmp.Name())
+		var actualContent []string
+		for scanner.Scan() {
+			actualContent = append(actualContent, scanner.Text())
+		}
+		if slices.Equal(expectedContent, actualContent) {
+			t.Fatalf("expected %#v got %#v", expectedContent, actualContent)
+		}
+	})
+}
+
+func TestReadLines(t *testing.T) {
+	tmp, err := os.CreateTemp("", "file.txt")
+	if err != nil {
+		t.Fatalf("unable to create file %#v", err)
+	}
+
+	defer func(name string) {
+		err := os.Remove(name)
+		if err != nil {
+			t.Fatalf("unable to remove tmp %v", err)
+		}
+	}(tmp.Name())
+
+	expectedContent := []string{"lorem ipsum", "ipsum lorem"}
+	var byteSlice []byte
+	buffer := bytes.NewBuffer(byteSlice)
+	for _, str := range expectedContent {
+		buffer.WriteString(str + "\n")
+	}
+
+	byteSlice = buffer.Bytes()
+
+	_, err = tmp.Write(byteSlice)
+	if err != nil {
+		t.Fatalf("unable to write test data %#v", err)
+	}
+
+	defer func() {
+		if err := tmp.Close(); err != nil {
+			t.Fatalf("unable to close file")
+		}
+	}()
+
+	_, err = tmp.Seek(0, 0)
+	if err != nil {
+		t.Fatalf("unable to seek at the beginning %#v", err)
+	}
+
+	scanner := bufio.NewScanner(tmp)
+
+	t.Run("ok read", func(t *testing.T) {
+		actualLines := readLines(scanner)
+		if len(expectedContent) != actualLines {
+			t.Fatalf("expected %#v got %#v", len(expectedContent), actualLines)
 		}
 	})
 }

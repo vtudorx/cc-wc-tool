@@ -1,8 +1,8 @@
 package main
 
 import (
+	"bufio"
 	"flag"
-	"io"
 	"log"
 	"os"
 )
@@ -42,7 +42,7 @@ func readFlags() Flags {
 	}
 }
 
-func readTxtFile(fp string) []byte {
+func readTxtFile(fp string) *bufio.Scanner {
 	file, err := os.Open(fp)
 	if err != nil {
 		log.Fatalf("unable to open %s with err %s", fp, err.Error())
@@ -54,10 +54,19 @@ func readTxtFile(fp string) []byte {
 		}
 	}()
 
-	b, err := io.ReadAll(file)
-	if err != nil {
-		log.Fatalf("unable to read %s", err.Error())
+	return bufio.NewScanner(file)
+}
+
+func readLines(s *bufio.Scanner) int {
+	numberOfLines := 0
+	s.Split(bufio.ScanLines)
+	for s.Scan() {
+		numberOfLines++
 	}
 
-	return b
+	if err := s.Err(); err != nil {
+		log.Fatalf("error encountered %s", err.Error())
+	}
+
+	return numberOfLines
 }
